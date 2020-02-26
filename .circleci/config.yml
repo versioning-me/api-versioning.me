@@ -12,10 +12,10 @@ commands:
     description: "executor:gcloud ブランチ別環境変数の設定"
     parameters:
       env:
-        default: "DEV"
+        default: "DEVELOPMENT"
         description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
         type: enum
-        enum: ["DEV", "STG", "PROD"]
+        enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
     steps:
       - run:
           name: Set gcloud environments
@@ -59,10 +59,10 @@ jobs:
     executor: golang
     parameters:
       env:
-        default: "DEV"
+        default: "DEVELOPMENT"
         description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
         type: enum
-        enum: ["DEV", "STG", "PROD"]
+        enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
     steps:
       - checkout
       - setup_cloud_sql_proxy
@@ -83,10 +83,10 @@ jobs:
     executor: gcloud
     parameters:
       env:
-        default: "DEV"
+        default: "DEVELOPMENT"
         description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
         type: enum
-        enum: ["DEV", "STG", "PROD"]
+        enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
       is_production:
         type: boolean
         default: false
@@ -108,10 +108,10 @@ jobs:
     executor: gcloud
     parameters:
       env:
-        default: "DEV"
+        default: "DEVELOPMENT"
         description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
         type: enum
-        enum: ["DEV", "STG", "PROD"]
+        enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
       before-traffic:
         type: string
         default: "0.99"
@@ -131,10 +131,10 @@ jobs:
     executor: gcloud
     parameters:
       env:
-        default: "DEV"
+        default: "DEVELOPMENT"
         description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
         type: enum
-        enum: ["DEV", "STG", "PROD"]
+        enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
     steps:
       - checkout
       - setup_environments:
@@ -153,7 +153,7 @@ workflows:
           name: migrate_development
           requires:
             - test
-          env: DEV
+          env: DEVELOPMENT
           filters:
             branches:
               only:
@@ -164,7 +164,7 @@ workflows:
             # - test
             - migrate_development
           is_production: false
-          env: DEV
+          env: DEVELOPMENT
           filters:
             branches:
               only:
@@ -173,7 +173,7 @@ workflows:
           name: migrate_staging
           requires:
             - test
-          env: STG
+          env: STGAGING
           filters:
             tags:
               only: /^v(\.[0-9]){3}.*/
@@ -185,7 +185,7 @@ workflows:
           requires:
             - test
             - migrate_staging
-          env: STG
+          env: STGAGING
           is_production: false
           filters:
             tags:
@@ -208,7 +208,7 @@ workflows:
           requires:
             - test
             - hold_prod
-          env: PROD
+          env: PRODUCTION
           filters:
             tags:
               only: /^v(\.[0-9]){3}.*/
@@ -221,7 +221,7 @@ workflows:
             - test
             - hold_prod
             - migrate_production
-          env: PROD
+          env: PRODUCTION
           is_production: true
           filters:
             tags:
@@ -243,7 +243,7 @@ workflows:
           name: canary
           requires:
             - hold_canary
-          env: PROD
+          env: PRODUCTION
           before-traffic: "0.99"
           after-traffic: "0.01"
           filters:
@@ -265,7 +265,7 @@ workflows:
       - promote:
           requires:
             - hold_promote
-          env: PROD
+          env: PRODUCTION
           filters:
             tags:
               only: /^v(\.[0-9]){3}.*/

@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/storage v1.0.0
 	github.com/GoogleCloudPlatform/cloudsql-proxy v0.0.0-20200212165446-231cffdfe5a1 // indirect
 	github.com/blendle/zapdriver v1.3.1
+	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-sql-driver/mysql v1.4.1

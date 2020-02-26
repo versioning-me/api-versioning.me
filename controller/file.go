@@ -21,6 +21,8 @@ func FileUploadHandler(c *gin.Context) {
 	}
 	v := models.NewVersion(f)
 
+	// Todo
+	// バケットはチーム(or organization?)ごと？ディレクトリで分ける？
 	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f)
 	if err != nil {
 		log.Printf("Failed to upload file. ERROR: %s", err)
@@ -47,7 +49,6 @@ func TxCreateVersionAndFile(v *models.Version, f *models.UploadedFile, db *gorm.
 			return err
 		}
 		var version models.Version
-		log.Println(v.Name)
 		if db.Where("name = ?", v.Name).Last(&version).RecordNotFound() == true {
 			log.Println(version.Name)
 			if err := models.StoreVersion(v, tx).Error;err != nil {
