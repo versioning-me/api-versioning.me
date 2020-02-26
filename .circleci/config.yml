@@ -1,0 +1,274 @@
+version: 2.1
+executors:
+  golang:
+    docker:
+      - image: circleci/golang:1.12
+  gcloud:
+    docker:
+      - image: google/cloud-sdk:latest
+
+commands:
+  setup_environments:
+    description: "executor:gcloud ブランチ別環境変数の設定"
+    parameters:
+      env:
+        default: "DEV"
+        description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
+        type: enum
+        enum: ["DEV", "STG", "PROD"]
+    steps:
+      - run:
+          name: Set gcloud environments
+          command: |
+            echo "env_variables:
+              GO_ENV: `eval echo << parameters.env >> | tr '[:upper:]' '[:lower:]' `
+              MYSQL_ROOT_PASSWORD: $<< parameters.env >>_MYSQL_ROOT_PASSWORD
+              DB_HOST: $<< parameters.env >>_DB_HOST" > /root/project/env.yaml
+            echo $<< parameters.env >>_GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project $<< parameters.env >>_GOOGLE_PROJECT_ID
+            gcloud --quiet config set compute/zone $<< parameters.env >>_GOOGLE_COMPUTE_ZONE
+
+  setup_cloud_sql_proxy:
+    description: "Cloud SQL Proxyのセットアップ"
+    steps:
+      - run:
+          name: download wget and cloud_sql_proxy
+          command: |
+            apt-get update || sudo apt-get update
+            apt-get install -y wget || sudo apt-get install -y wget
+            wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
+            chmod +x cloud_sql_proxy
+
+jobs:
+  test:
+    executor: golang
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: build
+          command: go build ./main.go
+      - run:
+          name: test
+          command: go test -v ./...
+
+  migrate:
+    executor: golang
+    parameters:
+      env:
+        default: "DEV"
+        description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
+        type: enum
+        enum: ["DEV", "STG", "PROD"]
+    steps:
+      - checkout
+      - setup_cloud_sql_proxy
+      - run:
+          name: Set golang environment
+          command: |
+            echo export GO_ENV=`eval echo << parameters.env >> | tr '[:upper:]' '[:lower:]' ` >> $BASH_ENV
+            echo 'export MYSQL_ROOT_PASSWORD=$<< parameters.env >>_MYSQL_ROOT_PASSWORD' >> $BASH_ENV
+            echo 'export DB_HOST=$<< parameters.env >>_DB_HOST' >> $BASH_ENV
+            echo $<< parameters.env >>_GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+
+      - run:
+          name: go migrate
+          command: |
+            go run ./cmd/migrate.go
+
+  deploy:
+    executor: gcloud
+    parameters:
+      env:
+        default: "DEV"
+        description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
+        type: enum
+        enum: ["DEV", "STG", "PROD"]
+      is_production:
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - setup_cloud_sql_proxy
+      - setup_environments:
+        env: << parameters.env >>
+      - when:
+          condition: << parameters.is_production >>
+          steps:
+            - run: gcloud app deploy --no-promote
+      - unless:
+          condition: << parameters.is_production >>
+          steps:
+            - run: gcloud app deploy
+
+  set_traffic:
+    executor: gcloud
+    parameters:
+      env:
+        default: "DEV"
+        description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
+        type: enum
+        enum: ["DEV", "STG", "PROD"]
+      before-traffic:
+        type: string
+        default: "0.99"
+      after-traffic:
+        type: string
+        default: "0.01"
+    steps:
+      - checkout
+      - setup_environments:
+        env: << parameters.env >>
+      - run: |
+          BEFORE_VERSION="$(gcloud app versions list --service=${GAE_SERVICE} --filter='traffic_split>0.5' --format='value(id)')"
+          CURRENT_VERSION=$(echo $(gcloud app versions list --service=${GAE_SERVICE} --limit='1' --format='value(id)' --sort-by='~VERSION.createTime') | sed -e 's/ .*//g')
+          gcloud app services set-traffic --splits ${BEFORE_VERSION}=<< parameters.before-traffic >>,${CURRENT_VERSION}=<< parameters.after-traffic >> --split-by=random --quiet
+
+  promote:
+    executor: gcloud
+    parameters:
+      env:
+        default: "DEV"
+        description: ブランチ別の環境変数を"DEV", "STG", "PROD"から選択。
+        type: enum
+        enum: ["DEV", "STG", "PROD"]
+    steps:
+      - checkout
+      - setup_environments:
+        env: << parameters.env >>
+      - run: |
+          CURRENT_VERSION=$(echo $(gcloud app versions list --service=${GAE_SERVICE} --limit='1' --format='value(id)' --sort-by='~VERSION.createTime') | sed -e 's/ .*//g')
+          gcloud app services set-traffic --splits ${CURRENT_VERSION}=1 --split-by=random --quiet --migrate
+
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
+      - migrate:
+          name: migrate_development
+          requires:
+            - test
+          env: DEV
+          filters:
+            branches:
+              only:
+                - development
+      - deploy:
+          name: deploy_development
+          requires:
+            # - test
+            - migrate_development
+          is_production: false
+          env: DEV
+          filters:
+            branches:
+              only:
+                - development
+      - migrate:
+          name: migrate_staging
+          requires:
+            - test
+          env: STG
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - deploy:
+          name: deploy_staging
+          requires:
+            - test
+            - migrate_staging
+          env: STG
+          is_production: false
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - hold_prod:
+          type: approval
+          requires:
+            - deploy_staging
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - migrate:
+          name: migrate_production
+          requires:
+            - test
+            - hold_prod
+          env: PROD
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - deploy:
+          name: deploy_production
+          requires:
+            - test
+            - hold_prod
+            - migrate_production
+          env: PROD
+          is_production: true
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - hold_canary:
+          type: approval
+          requires:
+            - deploy_production
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - set_traffic:
+          name: canary
+          requires:
+            - hold_canary
+          env: PROD
+          before-traffic: "0.99"
+          after-traffic: "0.01"
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - hold_promote:
+          type: approval
+          requires:
+            - canary
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master
+      - promote:
+          requires:
+            - hold_promote
+          env: PROD
+          filters:
+            tags:
+              only: /^v(\.[0-9]){3}.*/
+            branches:
+              only:
+                - master

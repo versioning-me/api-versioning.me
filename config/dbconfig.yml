@@ -1,0 +1,11 @@
+#sql-migrate new -config="config/dbconfig.yml" -env="localhost" create_users
+#sql-migrate up -config="config/dbconfig.yml" -env="localhost"
+vagrant:
+  dialect: mysql
+  dir: migrations
+  datasource: user:pass@tcp(localhost:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true
+
+docker:
+  dialect: mysql
+  dir: migrations
+  datasource: user:pass@tcp(localhost:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true
