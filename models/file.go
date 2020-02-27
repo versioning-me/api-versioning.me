@@ -58,8 +58,8 @@ func NewFile(f multipart.File, h *multipart.FileHeader) (*UploadedFile, error) {
 	ext := filepath.Ext(h.Filename)
 	return &UploadedFile{
 		VersionName: strings.Replace(h.Filename, " ", "-", -1),
-		Hash:        hex.EncodeToString(s[:]) + ext,
-		UUID:        hash + ext,
+		Hash:        hex.EncodeToString(s[:]),
+		UUID:        hash+ext,
 		Ext:         ext,
 		Mime:        http.DetectContentType(buff),
 		Size:        int(h.Size),
