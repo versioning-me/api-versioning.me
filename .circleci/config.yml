@@ -148,7 +148,13 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - test
+      - test:
+          name: test
+          filters:
+            branches:
+              only:
+                - development
+                - master
       - migrate:
           name: migrate_development
           requires:
@@ -173,7 +179,7 @@ workflows:
           name: migrate_staging
           requires:
             - test
-          env: STGAGING
+          env: STAGING
           filters:
             tags:
               only: /^v(\.[0-9]){3}.*/
@@ -185,7 +191,7 @@ workflows:
           requires:
             - test
             - migrate_staging
-          env: STGAGING
+          env: STAGING
           is_production: false
           filters:
             tags:

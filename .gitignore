@@ -1,2 +1,4 @@
 /.idea
 config/credentials/*
+process.yml
+DS_Store
