@@ -23,6 +23,8 @@ commands:
             echo "env_variables:
               GO_ENV: `eval echo << parameters.env >> | tr '[:upper:]' '[:lower:]' `
               MYSQL_ROOT_PASSWORD: $<< parameters.env >>_MYSQL_ROOT_PASSWORD
+              MYSQL_USER_NAME: $<< parameters.env >>_MYSQL_USER_NAME
+              MYSQL_USER_PASS: $<< parameters.env >>_MYSQL_USER_PASS
               DB_HOST: $<< parameters.env >>_DB_HOST" > /root/project/env.yaml
             echo $<< parameters.env >>_GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
