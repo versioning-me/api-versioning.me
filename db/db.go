@@ -27,9 +27,9 @@ func Set() {
 		Con = fmt.Sprintf("%s:%s@unix(%s/%s)/%s?charset=utf8&parseTime=true&loc=Local", user, pass, "/cloudsql", os.Getenv("DB_HOST"), DbName)
 
 	default:
-		user := "user"
-		pass := "pass"
-		Con = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=Local", user, pass, "localhost", 3307, DbName)
+		user := "two"
+		pass := "two0401"
+		Con = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=Local", user, pass, "192.168.33.10", 3307, DbName)
 	}
 }
 

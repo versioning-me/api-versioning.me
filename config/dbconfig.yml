@@ -3,9 +3,9 @@
 vagrant:
   dialect: mysql
   dir: migrations
-  datasource: user:pass@tcp(localhost:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true
+  datasource: root:root0401@tcp(192.168.33.10:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true
 
 docker:
   dialect: mysql
   dir: migrations
-  datasource: user:pass@tcp(localhost:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true
+  datasource: two:two0401@tcp(localhost:3307)/versioningme_localhost?charset=utf8&collation=utf8_general_ci&parseTime=true

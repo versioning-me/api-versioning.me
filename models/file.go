@@ -3,6 +3,7 @@ package models
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -55,6 +56,7 @@ func NewFile(f multipart.File, h *multipart.FileHeader) (*UploadedFile, error) {
 			return nil, err
 		}
 	}
+	fmt.Println(h.Filename)
 	ext := filepath.Ext(h.Filename)
 	return &UploadedFile{
 		VersionName: strings.Replace(h.Filename, " ", "-", -1),
