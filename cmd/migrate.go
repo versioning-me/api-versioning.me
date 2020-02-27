@@ -41,7 +41,7 @@ func main() {
 
 	db, err := cloudsqlproxy.DialCfg(&mysql.Config{
 		Addr:                 os.Getenv("DB_HOST"),               // インスタンス接続名
-		DBName:               "sleepdays_" + os.Getenv("GO_ENV"), // データベース名
+		DBName:               "versioningme_" + os.Getenv("GO_ENV"), // データベース名
 		User:                 "root",                             // ユーザ名
 		Passwd:               os.Getenv("MYSQL_ROOT_PASSWORD"),   // ユーザパスワード
 		Net:                  "cloudsql",                         // Cloud SQL Proxy で接続する場合は cloudsql 固定です
