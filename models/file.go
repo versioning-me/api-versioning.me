@@ -35,7 +35,7 @@ func GetUploadedFilesByVersionName(limit int, versionName string, f *UploadedFil
 }
 
 func GetUploadedFiles(limit int, f *UploadedFile, d *gorm.DB) *gorm.DB {
-	return d.Limit(limit).Order("id desc").Find(&f.UploadedFiles)
+	return d.Limit(limit).Order("id asc").Find(&f.UploadedFiles)
 }
 
 func StoreUploadedFile(f *UploadedFile, d *gorm.DB) *gorm.DB {

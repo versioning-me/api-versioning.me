@@ -32,11 +32,12 @@ func FileUploadHandler(c *gin.Context) {
 		log.Fatalf("Failed to commit. rollback... %s", err.Error())
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"msg": fmt.Sprintf("%+v uploaded!", *f),
-		"url":      f.Url,
-		"fileName": objAttrs.Name,
-	})
+	//c.JSON(http.StatusOK, gin.H{
+	//	"msg": fmt.Sprintf("%+v uploaded!", *f),
+	//	"url":      f.Url,
+	//	"fileName": objAttrs.Name,
+	//})
+	GetUploadedFilesHandler(c)
 }
 
 func TxCreateVersionAndFile(v *models.Version, f *models.UploadedFile, db *gorm.DB) error {

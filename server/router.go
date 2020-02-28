@@ -22,8 +22,7 @@ func NewRouter() *gin.Engine {
 }
 func SetCors() gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowAllOrigins: true,
-		// AllowOrigins:    nil,
+		AllowOrigins:     []string{"http://localhost:8081"},
 		AllowMethods:     []string{"GET", "POST"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: true,
