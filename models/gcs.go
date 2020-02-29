@@ -10,7 +10,7 @@ import (
 
 func StoreGCS(bucketName string, uploadedFile *UploadedFile) (*storage.ObjectAttrs, error) {
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("./config/credentials/backend-versioning-me-dev-7b0ff66210c1.json")
+	opt := option.WithCredentialsFile("./config/credentials/credential.json")
 
 	client, err := storage.NewClient(ctx, opt)
 	if err != nil {
