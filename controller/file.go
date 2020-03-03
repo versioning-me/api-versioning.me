@@ -67,7 +67,10 @@ func GetUploadedFilesHandler(c *gin.Context) {
 	if err := models.GetUploadedFiles(20,&f,db.Db).Error; err != nil {
 		log.Fatalf("Failed to get uploaded files. %+v", err)
 	}
-	fmt.Println(f.UploadedFiles)
+	//fmt.Println(f.UploadedFiles)
+	//for _, file := range f.UploadedFiles {
+	//	fmt.Println(file.Id)
+	//}
 	c.JSON(http.StatusOK, gin.H{
 		"files": f.UploadedFiles,
 	})

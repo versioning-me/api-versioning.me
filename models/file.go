@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 )
 
 type UploadedFile struct {
-	Id          string
+	Id          int
 	VersionName string
 	UUID        string
 	Hash        string
@@ -30,12 +31,20 @@ type UploadedFile struct {
 	UploadedFiles []UploadedFile
 }
 
+type ById []UploadedFile
+func (a ById) Len() int { return len(a) }
+func (a ById) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ById) Less(i, j int) bool { return a[i].Id < a[j].Id }
+
 func GetUploadedFilesByVersionName(limit int, versionName string, f *UploadedFile, d *gorm.DB) *gorm.DB {
 	return d.Limit(limit).Order("id desc").Where("version_name = ?", versionName).Find(&f.UploadedFiles)
 }
 
 func GetUploadedFiles(limit int, f *UploadedFile, d *gorm.DB) *gorm.DB {
-	return d.Limit(limit).Order("id asc").Find(&f.UploadedFiles)
+	r := d.Limit(limit).Order("id desc").Find(&f.UploadedFiles)
+	//slack形式のソート
+	sort.Sort(ById(f.UploadedFiles))
+	return r
 }
 
 func StoreUploadedFile(f *UploadedFile, d *gorm.DB) *gorm.DB {
