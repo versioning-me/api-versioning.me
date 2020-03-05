@@ -5,14 +5,13 @@ import (
 	"encoding/hex"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
-
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
+	"github.com/jinzhu/gorm"
 )
 
 type UploadedFile struct {
@@ -57,11 +56,11 @@ func NewFile(f multipart.File, h *multipart.FileHeader) (*UploadedFile, error) {
 	}
 	ext := filepath.Ext(h.Filename)
 	return &UploadedFile{
-		VersionName: strings.Replace(h.Filename, " ", "-", -1),
+		VersionName: strings.Replace(h.Filename, " ", "_", -1),
 		Hash:        hex.EncodeToString(s[:]),
-		UUID:        hash+ext,
+		UUID:        hash + ext,
 		Ext:         ext,
-		Mime:        http.DetectContentType(buff),
+		Mime:        mimetype.Detect(buff).String(),
 		Size:        int(h.Size),
 		Reader:      f,
 	}, nil

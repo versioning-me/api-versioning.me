@@ -21,8 +21,6 @@ func FileUploadHandler(c *gin.Context) {
 	}
 	v := models.NewVersion(f)
 
-	// Todo
-	// バケットはチーム(or organization?)ごと？ディレクトリで分ける？
 	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f)
 	if err != nil {
 		log.Printf("Failed to upload file. ERROR: %s", err)
@@ -34,11 +32,12 @@ func FileUploadHandler(c *gin.Context) {
 		log.Fatalf("Failed to commit. rollback... %s", err.Error())
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"msg": fmt.Sprintf("%+v uploaded!", *f),
-		"url":      f.Url,
-		"fileName": objAttrs.Name,
-	})
+	c.Redirect(http.StatusFound, "/files")
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"msg": fmt.Sprintf("%+v uploaded!", *f),
+	// 	"url":      f.Url,
+	// 	"fileName": objAttrs.Name,
+	// })
 }
 
 func TxCreateVersionAndFile(v *models.Version, f *models.UploadedFile, db *gorm.DB) error {
