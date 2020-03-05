@@ -20,10 +20,11 @@ func NewVersionAndNewFileHandler(c *gin.Context) {
 		log.Fatalf("Failed to New File obj. : %s", err)
 	}
 
-	// var title, detail string
+	// デフォルトでtitleに現在のfilenameを入れておく
+	var title string = fileHeader.Filename
 	// Todo
 	// POST時にtitleとdetailを入れる？一旦空欄stringで
-	title := c.PostForm("title")
+	title = c.PostForm("title")
 	detail := c.PostForm("detail")
 	f := models.NewFileWithTitle(title, detail)
 
