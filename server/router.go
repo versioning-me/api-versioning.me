@@ -13,10 +13,10 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Recovery())
 	router.Use(middlewares.SetCors())
 
-	router.POST("/file", controller.FileUploadHandler)
-	router.GET("/files", controller.GetUploadedFilesHandler)
-	router.GET("/files/:version_name", controller.GetUploadedFilesByVersionNameHandler)
-	router.GET("/versions", controller.GetVersionsHandler)
+	router.POST("/new", controller.NewVersionAndNewFileHandler)
+	router.GET("/files", controller.GetFilesHandler)
+	router.GET("/versions/:file_id", controller.GetVersionsByFileIdHandler)
+	router.POST("/version/:file_id", controller.UpdateFileAndNewVersionHandler)
 
 	return router
 }

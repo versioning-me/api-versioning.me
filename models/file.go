@@ -1,76 +1,48 @@
 package models
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"io"
-	"mime/multipart"
-	"path/filepath"
-	"strings"
-	"time"
-
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+	"strconv"
+	"time"
 )
 
-type UploadedFile struct {
-	Id          string
-	VersionName string
-	UUID        string
-	Hash        string
-	Ext         string
-	Mime        string
-	Size        int
-	Url         string
-	CreatedAt   time.Time
-	io.Reader
-	UploadedFiles []UploadedFile
+type File struct {
+	Id        int
+	Title     string
+	Detail    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Files     []File
 }
 
-func GetUploadedFilesByVersionName(limit int, versionName string, f *UploadedFile, d *gorm.DB) *gorm.DB {
-	return d.Limit(limit).Order("id desc").Where("version_name = ?", versionName).Find(&f.UploadedFiles)
+func NewFile() *File {
+	return &File{}
 }
 
-func GetUploadedFiles(limit int, f *UploadedFile, d *gorm.DB) *gorm.DB {
-	return d.Limit(limit).Order("id desc").Find(&f.UploadedFiles)
+func NewFileWithTitle(title, detail string) *File {
+	return &File{
+		Title:  title,
+		Detail: detail,
+	}
 }
 
-func StoreUploadedFile(f *UploadedFile, d *gorm.DB) *gorm.DB {
+func GetFiles(limit int, f *File, d *gorm.DB) *gorm.DB {
+	return d.Limit(limit).Order("id desc").Find(&f.Files)
+}
+
+func GetFileById(id string, f *File, d *gorm.DB) *gorm.DB {
+	return d.Limit(1).Order("id desc").Where("id = ?", id).Find(&f)
+}
+
+func (f *File)ConvertFileIdToStoring() string {
+	fileIdStr := strconv.Itoa(f.Id)
+	return fileIdStr
+}
+
+func StoreFile(f *File, d *gorm.DB) *gorm.DB {
 	return d.Create(f)
 }
 
-func NewFile(f multipart.File, h *multipart.FileHeader) (*UploadedFile, error) {
-	hash, err := generateUUID()
-	if err != nil {
-		return nil, err
-	}
-	s := sha256.Sum256([]byte(h.Filename))
-	buff := make([]byte, h.Size)
-	if _, err := f.Read(buff); err != nil {
-		return nil, err
-	} else {
-		if _, err = f.Seek(0, 0); err != nil {
-			return nil, err
-		}
-	}
-	ext := filepath.Ext(h.Filename)
-	return &UploadedFile{
-		VersionName: strings.Replace(h.Filename, " ", "_", -1),
-		Hash:        hex.EncodeToString(s[:]),
-		UUID:        hash + ext,
-		Ext:         ext,
-		Mime:        mimetype.Detect(buff).String(),
-		Size:        int(h.Size),
-		Reader:      f,
-	}, nil
-}
-
-func generateUUID() (string, error) {
-	u, err := uuid.NewRandom()
-	if err != nil {
-		return "", err
-	}
-	str := u.String()
-	return str, nil
+func UpdateFile(f *File, d *gorm.DB) *gorm.DB {
+	return d.Save(f)
 }

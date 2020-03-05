@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func StoreGCS(bucketName string, uploadedFile *UploadedFile) (*storage.ObjectAttrs, error) {
+func StoreGCS(bucketName string, f *File, v *Version) (*storage.ObjectAttrs, error) {
 	ctx := context.Background()
 	client, err := SetGCSClient(ctx)
 	if err != nil {
@@ -33,13 +33,14 @@ func StoreGCS(bucketName string, uploadedFile *UploadedFile) (*storage.ObjectAtt
 		log.Printf("Success to Create a bucket %+v.", bucket)
 	}
 
-	obj := bucket.Object(uploadedFile.VersionName + "/" + uploadedFile.UUID)
+	// fileId/versionNum_versionName
+	obj := bucket.Object("v0.0.1/" + f.ConvertFileIdToStoring() + "/" + v.ConvertVersionNumToString() + "_" + v.Name)
 
 	w := obj.NewWriter(ctx)
-	w.ContentType = uploadedFile.Mime
+	w.ContentType = v.Mime
 	w.ChunkSize = 1024
 
-	if _, err = io.Copy(w, uploadedFile.Reader); err != nil {
+	if _, err = io.Copy(w, v.Reader); err != nil {
 		return nil, err
 	}
 	if err = w.Close(); err != nil {
