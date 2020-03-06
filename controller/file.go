@@ -10,7 +10,7 @@ import (
 )
 
 
-// GET "/files"
+// GET "/file"
 func GetFilesHandler(c *gin.Context) {
 	var f models.File
 	if err := models.GetFiles(20,&f,db.Db).Error; err != nil {

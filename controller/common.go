@@ -21,12 +21,14 @@ func NewVersionAndNewFileHandler(c *gin.Context) {
 	}
 
 	// デフォルトでtitleに現在のfilenameを入れておく
-	var title string = fileHeader.Filename
 	// Todo
 	// POST時にtitleとdetailを入れる？一旦空欄stringで
-	title = c.PostForm("title")
-	detail := c.PostForm("detail")
-	f := models.NewFileWithTitle(title, detail)
+	f := models.NewFile()
+	f.Title = fileHeader.Filename
+	if c.PostForm("title") != "" {
+		f.Title = c.PostForm("title")
+	}
+	f.Detail = c.PostForm("detail")
 
 	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f, v)
 	if err != nil {
@@ -39,7 +41,7 @@ func NewVersionAndNewFileHandler(c *gin.Context) {
 		log.Fatalf("Failed to commit. rollback... %s", err.Error())
 	}
 
-	c.Redirect(http.StatusFound, "/files")
+	c.Redirect(http.StatusFound, "/file")
 	// c.JSON(http.StatusOK, gin.H{
 	// 	"msg": fmt.Sprintf("%+v uploaded!", *f),
 	// 	"url":      f.Url,
@@ -71,7 +73,7 @@ func TxInsertVersionAndInsertFile(v *models.Version, f *models.File, db *gorm.DB
 	})
 }
 
-// PUT "/version/:file_id"
+// PUT "/version/"
 func UpdateFileAndNewVersionHandler(c *gin.Context) {
 	file, fileHeader, _ := c.Request.FormFile("file")
 
@@ -81,7 +83,14 @@ func UpdateFileAndNewVersionHandler(c *gin.Context) {
 	}
 
 	f := models.NewFile()
-	models.GetFileById(c.Param("file_id"), f, db.Db)
+	models.GetFileById(c.PostForm("file_id"), f, db.Db)
+
+	f.Title = fileHeader.Filename
+	if c.PostForm("title") != "" {
+		f.Title = c.PostForm("title")
+	}
+	f.Detail = c.PostForm("detail")
+
 
 	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f, v)
 	if err != nil {
@@ -94,7 +103,7 @@ func UpdateFileAndNewVersionHandler(c *gin.Context) {
 		log.Fatalf("Failed to commit. rollback... %s", err.Error())
 	}
 
-	c.Redirect(http.StatusFound, "/files")
+	c.Redirect(http.StatusFound, "/file")
 	// c.JSON(http.StatusOK, gin.H{
 	// 	"msg": fmt.Sprintf("%+v uploaded!", *f),
 	// 	"url":      f.Url,

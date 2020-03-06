@@ -67,8 +67,9 @@ func NewVersion(f multipart.File, h *multipart.FileHeader) (*Version, error) {
 		}
 	}
 	ext := filepath.Ext(h.Filename)
+	name := strings.Replace(strings.Replace(h.Filename, " ", "_", -1), ext, "", -1)
 	return &Version{
-		Name:      strings.Replace(h.Filename, " ", "_", -1),
+		Name:      name,
 		Ext:       ext,
 		Mime:      mimetype.Detect(buff).String(),
 		Size:      int(h.Size),

@@ -14,9 +14,9 @@ func NewRouter() *gin.Engine {
 	router.Use(middlewares.SetCors())
 
 	router.POST("/new", controller.NewVersionAndNewFileHandler)
-	router.GET("/files", controller.GetFilesHandler)
-	router.GET("/versions/:file_id", controller.GetVersionsByFileIdHandler)
-	router.POST("/version/:file_id", controller.UpdateFileAndNewVersionHandler)
+	router.GET("/file", controller.GetFilesHandler)
+	router.GET("/version/:file_id", controller.GetVersionsByFileIdHandler)
+	router.POST("/version", controller.UpdateFileAndNewVersionHandler)
 
 	return router
 }

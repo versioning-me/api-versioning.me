@@ -9,7 +9,7 @@ import (
 )
 
 
-// versions/:file_id
+// version/:file_id
 func GetVersionsByFileIdHandler(c *gin.Context) {
 	q := c.Param("file_id")
 	var v models.Version
