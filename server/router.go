@@ -3,6 +3,7 @@ package server
 import (
 	"api-versioning-me/controller"
 	"github.com/gin-contrib/cors"
+	"api-versioning-me/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,11 +13,12 @@ func NewRouter() *gin.Engine {
 	router.MaxMultipartMemory = 8 << 20
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(middlewares.SetCors())
 
-	router.POST("/file", controller.FileUploadHandler)
-	router.GET("/files", controller.GetUploadedFilesHandler)
-	router.GET("/files/:version_name", controller.GetUploadedFilesByVersionNameHandler)
-	router.GET("/versions", controller.GetVersionsHandler)
+	router.POST("/new", controller.NewVersionAndNewFileHandler)
+	router.GET("/file", controller.GetFilesHandler)
+	router.GET("/version/:file_id", controller.GetVersionsByFileIdHandler)
+	router.POST("/version", controller.UpdateFileAndNewVersionHandler)
 
 	return router
 }
