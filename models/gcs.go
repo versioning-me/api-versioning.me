@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-const BUCKET = "hogehoge20200314"
+const BUCKET = "uploadfile-versioning-me-dev"
 const PROJECTID = "backend-versioning-me-dev"
 
 func StoreGCS(f *File, v *Version) (*storage.ObjectAttrs, error) {
