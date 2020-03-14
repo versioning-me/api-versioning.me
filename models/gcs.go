@@ -10,7 +10,8 @@ import (
 	"os"
 )
 
-const BUCKET = "uploadfile-versioning-me-dev"
+const BUCKET = "hogehoge20200314"
+const PROJECTID = "backend-versioning-me-dev"
 
 func StoreGCS(f *File, v *Version) (*storage.ObjectAttrs, error) {
 	ctx := context.Background()
@@ -30,7 +31,7 @@ func StoreGCS(f *File, v *Version) (*storage.ObjectAttrs, error) {
 			Location:                   "asia-northeast1",
 			LocationType:               "region",
 		}
-		if err := bucket.Create(ctx, BUCKET, attrs); err != nil {
+		if err := bucket.Create(ctx, PROJECTID, attrs); err != nil {
 			log.Fatalf("Can't create bucket. (Reason: %s)", err)
 		}
 		log.Printf("Success to Create a bucket %+v.", bucket)
