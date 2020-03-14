@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-const BUCKET = "uploadfile-versionign-me-dev"
+const BUCKET = "uploadfile-versioning-me-dev"
 
 func StoreGCS(f *File, v *Version) (*storage.ObjectAttrs, error) {
 	ctx := context.Background()

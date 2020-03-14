@@ -28,4 +28,4 @@ CREATE TABLE IF NOT EXISTS `version` (
 
 -- +migrate Down
 DROP TABLE IF EXISTS version;
-DROP TABLE IF EXISTS uploaded_file;
+DROP TABLE IF EXISTS file;
