@@ -30,7 +30,7 @@ func NewVersionAndNewFileHandler(c *gin.Context) {
 	}
 	f.Detail = c.PostForm("detail")
 
-	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f, v)
+	objAttrs, err := models.StoreGCS(f, v)
 	if err != nil {
 		log.Printf("Failed to upload file. ERROR: %s", err)
 		return
@@ -92,7 +92,7 @@ func UpdateFileAndNewVersionHandler(c *gin.Context) {
 	f.Detail = c.PostForm("detail")
 
 
-	objAttrs, err := models.StoreGCS("uploadfile-versioning-me-dev", f, v)
+	objAttrs, err := models.StoreGCS(f, v)
 	if err != nil {
 		log.Printf("Failed to upload file. ERROR: %s", err)
 		return

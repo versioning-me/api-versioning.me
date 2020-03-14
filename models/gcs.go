@@ -10,7 +10,9 @@ import (
 	"os"
 )
 
-func StoreGCS(bucketName string, f *File, v *Version) (*storage.ObjectAttrs, error) {
+const BUCKET = "uploadfile-versionign-me-dev"
+
+func StoreGCS(f *File, v *Version) (*storage.ObjectAttrs, error) {
 	ctx := context.Background()
 	client, err := SetGCSClient(ctx)
 	if err != nil {
@@ -19,15 +21,16 @@ func StoreGCS(bucketName string, f *File, v *Version) (*storage.ObjectAttrs, err
 	}
 	defer client.Close()
 
-	bucket := client.Bucket(bucketName)
+	bucket := client.Bucket(BUCKET)
 	_, err = bucket.Attrs(ctx)
 	if err != nil {
-		log.Printf("Don't exist a bucket. Create %s.", bucketName)
+		log.Printf("Don't exist a bucket %s.", err)
+		log.Printf("Create a bucket %s.", BUCKET)
 		attrs := &storage.BucketAttrs{
 			Location:                   "asia-northeast1",
 			LocationType:               "region",
 		}
-		if err := bucket.Create(ctx, "backend-versioning-me-dev", attrs); err != nil {
+		if err := bucket.Create(ctx, BUCKET, attrs); err != nil {
 			log.Fatalf("Can't create bucket. (Reason: %s)", err)
 		}
 		log.Printf("Success to Create a bucket %+v.", bucket)
